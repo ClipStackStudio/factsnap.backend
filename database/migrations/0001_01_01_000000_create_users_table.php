@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('is_guest')->default(false)->index(); // added
+            $table->boolean('is_premium')->default(false)->index(); // added
             $table->rememberToken();
             $table->timestamps();
         });
