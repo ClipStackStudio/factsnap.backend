@@ -1,0 +1,724 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Factsnap API",
+        "description": "API for managing educational categories, packages, and facts",
+        "contact": {
+            "email": "support@factsnap.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "Factsnap API Server"
+        }
+    ],
+    "paths": {
+        "/categories-only": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories without packages",
+                "description": "Display all categories only (without packages).",
+                "operationId": "3776f6438ee6f9af5a4818af44f14b51",
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Category"
+                                            }
+                                        },
+                                        "debug": {
+                                            "properties": {
+                                                "response_time_ms": {
+                                                    "type": "number"
+                                                },
+                                                "from_cache": {
+                                                    "type": "boolean"
+                                                },
+                                                "count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories with their packages",
+                "description": "Display all categories with their packages.",
+                "operationId": "ead5fb1cf2a7453acb2e37928a1b1eaf",
+                "responses": {
+                    "200": {
+                        "description": "Categories with packages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "details": {
+                                            "properties": {
+                                                "total": {
+                                                    "description": "Total number of categories",
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Category"
+                                                    },
+                                                    {
+                                                        "properties": {
+                                                            "packages": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "$ref": "#/components/schemas/Package"
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get a specific category with its packages",
+                "description": "Display a specific category with its packages.",
+                "operationId": "4cdf41756315109f1efc72787db5830a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Category UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/Category"
+                                                },
+                                                {
+                                                    "properties": {
+                                                        "packages": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/Package"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/{id}/packages": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all packages for a specific category",
+                "description": "Get packages for a specific category.",
+                "operationId": "3ca4881eed2808aa58267432e1308fa9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Category UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Packages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "category": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "icon_url": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "packages": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Package"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/filter/access-level": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get categories filtered by package access level",
+                "description": "Get categories with packages filtered by access level.",
+                "operationId": "9e77e1f5d1f725b96762446adc7302aa",
+                "parameters": [
+                    {
+                        "name": "access_level",
+                        "in": "query",
+                        "description": "Filter packages by access level",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "free",
+                            "enum": [
+                                "free",
+                                "premium"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Filtered categories retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Category"
+                                                    },
+                                                    {
+                                                        "properties": {
+                                                            "packages": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "$ref": "#/components/schemas/Package"
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "filter": {
+                                            "properties": {
+                                                "access_level": {
+                                                    "type": "string",
+                                                    "example": "free"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/clear-cache": {
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Clear categories cache",
+                "description": "Clear the categories cache (useful when data is updated).",
+                "operationId": "121fd20d0494dbd0624f3f2aa611131a",
+                "responses": {
+                    "200": {
+                        "description": "Cache cleared successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "All categories cache cleared successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/categories-fast": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get categories with optimized package data (fast version)",
+                "description": "Fast cached version - packages without facts.",
+                "operationId": "31baeae489ff4d9702c51f71d93ecf25",
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully (optimized)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Category"
+                                                    },
+                                                    {
+                                                        "properties": {
+                                                            "packages": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "$ref": "#/components/schemas/Package"
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "debug": {
+                                            "properties": {
+                                                "response_time_ms": {
+                                                    "type": "number"
+                                                },
+                                                "from_cache": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/packages": {
+            "get": {
+                "tags": [
+                    "Packages"
+                ],
+                "summary": "Get all packages with their category",
+                "description": "Display all packages with their category.",
+                "operationId": "f550ff7f3b3ca5455c8a5b640d119d43",
+                "responses": {
+                    "200": {
+                        "description": "Packages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Package"
+                                                    },
+                                                    {
+                                                        "properties": {
+                                                            "category": {
+                                                                "$ref": "#/components/schemas/Category"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/packages/{id}": {
+            "get": {
+                "tags": [
+                    "Packages"
+                ],
+                "summary": "Get a specific package with its category and facts",
+                "description": "Display a specific package with its category and facts.",
+                "operationId": "ae4e1772df8d6e55efccd5495f46921e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Package UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Package retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/Package"
+                                                },
+                                                {
+                                                    "properties": {
+                                                        "category": {
+                                                            "$ref": "#/components/schemas/Category"
+                                                        },
+                                                        "facts": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/Fact"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Package not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Package not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiResponse": {
+                "properties": {
+                    "success": {
+                        "description": "Request success status",
+                        "type": "boolean"
+                    },
+                    "message": {
+                        "description": "Response message",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Response data",
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Category": {
+                "properties": {
+                    "id": {
+                        "description": "Category UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "description": "Category name",
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "description": "Category icon URL",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Package": {
+                "properties": {
+                    "id": {
+                        "description": "Package UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "category_id": {
+                        "description": "Category UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "description": "Package name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Package description",
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "description": "Package icon URL",
+                        "type": "string"
+                    },
+                    "access_level": {
+                        "description": "Access level",
+                        "type": "string",
+                        "enum": [
+                            "free",
+                            "premium"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Fact": {
+                "properties": {
+                    "id": {
+                        "description": "Fact UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "package_id": {
+                        "description": "Package UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "content": {
+                        "description": "Fact content",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Categories",
+            "description": "Categories"
+        },
+        {
+            "name": "Packages",
+            "description": "Packages"
+        }
+    ]
+}
