@@ -28,6 +28,19 @@ namespace App\Http\Controllers;
  *     @OA\Property(property="data", type="object", description="Response data")
  * )
  * @OA\Schema(
+ *     schema="ApiError",
+ *     @OA\Property(property="code", type="integer", description="Error code for programmatic handling", example=1001),
+ *     @OA\Property(property="message", type="string", description="User-friendly error message", example="The requested category could not be found."),
+ *     @OA\Property(property="details", type="string", description="Technical details and context for developers", example="Category with UUID '123e4567-e89b-12d3-a456-426614174000' does not exist in the database.")
+ * )
+ * @OA\Schema(
+ *     schema="ValidationError",
+ *     @OA\Property(property="code", type="integer", example=2001, description="Error code for programmatic handling"),
+ *     @OA\Property(property="message", type="string", example="The provided data is invalid.", description="User-friendly error message"),
+ *     @OA\Property(property="details", type="string", description="Technical details and context for developers"),
+ *     @OA\Property(property="errors", type="object", description="Field-specific validation errors")
+ * )
+ * @OA\Schema(
  *     schema="Category",
  *     @OA\Property(property="id", type="string", format="uuid", description="Category UUID"),
  *     @OA\Property(property="name", type="string", description="Category name"),

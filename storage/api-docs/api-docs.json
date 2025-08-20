@@ -22,7 +22,7 @@
                 ],
                 "summary": "Get all categories without packages",
                 "description": "Display all categories only (without packages).",
-                "operationId": "3776f6438ee6f9af5a4818af44f14b51",
+                "operationId": "404930bfc487f84d7add318d510e83c2",
                 "responses": {
                     "200": {
                         "description": "Categories retrieved successfully",
@@ -181,17 +181,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Category not found"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/ApiError"
                                 }
                             }
                         }
@@ -267,17 +257,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Category not found"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/ApiError"
                                 }
                             }
                         }
@@ -399,66 +379,6 @@
                 ]
             }
         },
-        "/categories-fast": {
-            "get": {
-                "tags": [
-                    "Categories"
-                ],
-                "summary": "Get categories with optimized package data (fast version)",
-                "description": "Fast cached version - packages without facts.",
-                "operationId": "31baeae489ff4d9702c51f71d93ecf25",
-                "responses": {
-                    "200": {
-                        "description": "Categories retrieved successfully (optimized)",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "allOf": [
-                                                    {
-                                                        "$ref": "#/components/schemas/Category"
-                                                    },
-                                                    {
-                                                        "properties": {
-                                                            "packages": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "$ref": "#/components/schemas/Package"
-                                                                }
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        "debug": {
-                                            "properties": {
-                                                "response_time_ms": {
-                                                    "type": "number"
-                                                },
-                                                "from_cache": {
-                                                    "type": "boolean"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/packages": {
             "get": {
                 "tags": [
@@ -568,17 +488,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Package not found"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/ApiError"
                                 }
                             }
                         }
@@ -601,6 +511,49 @@
                     },
                     "data": {
                         "description": "Response data",
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ApiError": {
+                "properties": {
+                    "code": {
+                        "description": "Error code for programmatic handling",
+                        "type": "integer",
+                        "example": 1001
+                    },
+                    "message": {
+                        "description": "User-friendly error message",
+                        "type": "string",
+                        "example": "The requested category could not be found."
+                    },
+                    "details": {
+                        "description": "Technical details and context for developers",
+                        "type": "string",
+                        "example": "Category with UUID '123e4567-e89b-12d3-a456-426614174000' does not exist in the database."
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "properties": {
+                    "code": {
+                        "description": "Error code for programmatic handling",
+                        "type": "integer",
+                        "example": 2001
+                    },
+                    "message": {
+                        "description": "User-friendly error message",
+                        "type": "string",
+                        "example": "The provided data is invalid."
+                    },
+                    "details": {
+                        "description": "Technical details and context for developers",
+                        "type": "string"
+                    },
+                    "errors": {
+                        "description": "Field-specific validation errors",
                         "type": "object"
                     }
                 },

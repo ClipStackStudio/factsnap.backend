@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class PackageController extends Controller
 {
+    use ApiErrorResponses;
     /**
      * Display all packages with their category.
      *
@@ -78,10 +79,7 @@ class PackageController extends Controller
      *     @OA\Response(
      *         response=404,
      *         description="Package not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Package not found")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
      *     )
      * )
      * @param string $id
@@ -92,10 +90,7 @@ class PackageController extends Controller
         $package = Package::with(['category', 'facts'])->find($id);
 
         if (!$package) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Package not found',
-            ], 404);
+            return $this->notFoundResponse('package', $id);
         }
 
         return response()->json([
@@ -138,10 +133,7 @@ class PackageController extends Controller
         $package = Package::with(['category', 'facts'])->find($id);
 
         if (!$package) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Package not found',
-            ], 404);
+            return $this->notFoundResponse('package', $id, 'Cannot retrieve facts for non-existent package.');
         }
 
         return response()->json([
@@ -166,10 +158,7 @@ class PackageController extends Controller
         $package = Package::with('category')->find($id);
 
         if (!$package) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Package not found',
-            ], 404);
+            return $this->notFoundResponse('package', $id, 'Cannot retrieve sample facts for non-existent package.');
         }
 
         $sampleFacts = $package->sampleFacts; // Uses the accessor we created

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    use ApiErrorResponses;
     /**
      * Display all categories only (without packages).
      *
@@ -125,10 +126,7 @@ class CategoryController extends Controller
      *     @OA\Response(
      *         response=404,
      *         description="Category not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Category not found")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
      *     )
      * )
      * @param string $id
@@ -139,10 +137,7 @@ class CategoryController extends Controller
         $category = Category::with('packages')->find($id);
 
         if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], 404);
+            return $this->notFoundResponse('category', $id);
         }
 
         return response()->json([
@@ -183,10 +178,7 @@ class CategoryController extends Controller
      *     @OA\Response(
      *         response=404,
      *         description="Category not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Category not found")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
      *     )
      * )
      * @param string $id
@@ -197,10 +189,7 @@ class CategoryController extends Controller
         $category = Category::with('packages')->find($id);
 
         if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], 404);
+            return $this->notFoundResponse('category', $id, 'Cannot retrieve packages for non-existent category.');
         }
 
         $packages = $category->packages;
