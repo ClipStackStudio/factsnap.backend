@@ -12,7 +12,8 @@
 /.vscode
 /.zed
 /auth.json
-/bootstrap/cache
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
 /node_modules
 /public/build
 /public/hot
