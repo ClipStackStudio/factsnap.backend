@@ -12,13 +12,11 @@
         "php": "^8.2",
         "darkaonline/l5-swagger": "^9.0",
         "laravel/framework": "^12.0",
-        "laravel/sanctum": "^4.2",
-        "laravel/tinker": "^2.10.1"
+        "laravel/sanctum": "^4.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "laravel/pint": "^1.13",
-        "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "phpunit/phpunit": "^11.5.3"
     },
@@ -53,7 +51,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names=server,queue,vite"
+            "php artisan serve"
         ],
         "test": [
             "@php artisan config:clear --ansi",
