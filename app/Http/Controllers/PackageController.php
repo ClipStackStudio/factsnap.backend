@@ -87,7 +87,13 @@ class PackageController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $package = Package::with(['category', 'facts'])->find($id);
+        $cacheKey = "package_{$id}_with_facts";
+        
+        $package = cache()->remember($cacheKey, 3600, function () use ($id) {
+            return Package::with(['category', 'facts' => function ($query) {
+                $query->limit(2);
+            }])->find($id);
+        });
 
         if (!$package) {
             return $this->notFoundResponse('package', $id);
