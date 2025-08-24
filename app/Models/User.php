@@ -24,6 +24,10 @@ class User extends Authenticatable
         'password',
         'is_guest',
         'is_premium',
+        // firebase auth fields
+        'firebase_uid',
+        'phone_number',
+        'phone_verified_at',
     ];
 
     /**
@@ -45,6 +49,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_guest' => 'boolean',
             'is_premium' => 'boolean',

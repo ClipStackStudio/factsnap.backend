@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\GuestController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\FirebaseAuthController;
+use OpenApi\Annotations as OA;
 
 Route::middleware('api')->group(function() {
     // Public routes - no authentication required
@@ -24,8 +26,16 @@ Route::middleware('api')->group(function() {
     // Auth routes
     Route::post('/auth/guest', [GuestController::class, 'createGuest']);
 
+    // Firebase Phone Auth sign-in with rate limiting
+    Route::post('/auth/firebase/sign-in', [FirebaseAuthController::class, 'signInWithIdToken'])
+        ->middleware('throttle:20,1');
+
+    // Firebase-protected current user endpoint
+    Route::middleware(\App\Http\Middleware\FirebaseAuthenticate::class)->group(function () {
+        Route::get('/me', [FirebaseAuthController::class, 'me']);
+    });
+
     Route::middleware('auth:sanctum')->group(function() {
-        Route::get('/me', [ProfileController::class, 'me']);
         Route::post('/auth/logout', [ProfileController::class, 'logout']);
         Route::get('/protected/ping', function() { return ['message' => 'pong']; }); // simple protected test
         

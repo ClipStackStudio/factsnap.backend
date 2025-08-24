@@ -379,6 +379,178 @@
                 ]
             }
         },
+        "/auth/firebase/sign-in": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sign in with Firebase Phone Auth",
+                "description": "Verifies a Firebase ID token (phone auth), upserts a local user, and returns the user profile. Returns 201 on first-time creation and 200 on subsequent sign-ins.",
+                "operationId": "ee6d44947b2f720602062914e56e4b59",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "idToken"
+                                ],
+                                "properties": {
+                                    "idToken": {
+                                        "description": "Firebase ID token obtained after phone authentication",
+                                        "type": "string",
+                                        "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created – First-time sign-in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User created"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "OK – Existing user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Signed in"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – Invalid/revoked token or not a phone sign-in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiError"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiError"
+                                        },
+                                        {
+                                            "properties": {
+                                                "errors": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests – Rate limit exceeded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too Many Attempts."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get the current authenticated user",
+                "description": "Returns the authenticated user profile. Requires a valid Firebase ID token in Authorization header.",
+                "operationId": "2ade2b90c69c0f023057790461d6c328",
+                "responses": {
+                    "200": {
+                        "description": "Current user profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – Invalid/missing token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/packages": {
             "get": {
                 "tags": [
@@ -654,6 +826,63 @@
                     }
                 },
                 "type": "object"
+            },
+            "User": {
+                "required": [
+                    "id",
+                    "name",
+                    "firebase_uid",
+                    "is_guest",
+                    "is_premium",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "firebase_uid": {
+                        "type": "string"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "+15551234567",
+                        "nullable": true
+                    },
+                    "phone_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "is_guest": {
+                        "type": "boolean"
+                    },
+                    "is_premium": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -661,10 +890,20 @@
                 "type": "http",
                 "bearerFormat": "JWT",
                 "scheme": "bearer"
+            },
+            "bearerAuth": {
+                "type": "http",
+                "description": "Use a Firebase ID token from the client SDK in the Authorization header. Example: Authorization: Bearer <idToken>",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },
     "tags": [
+        {
+            "name": "Auth",
+            "description": "Authentication using Firebase Phone Auth."
+        },
         {
             "name": "Categories",
             "description": "Categories"
