@@ -199,7 +199,6 @@ class FirebaseAuthController extends Controller
         $status = $created ? 201 : 200;
         return response()->json([
             'success' => true,
-            'message' => $created ? 'User created' : 'Signed in',
             'data' => [
                 'id' => $user->id,
                 'name' => $user->name,
