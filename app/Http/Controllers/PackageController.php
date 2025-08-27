@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Package;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +11,40 @@ use Illuminate\Support\Facades\Auth;
 class PackageController extends Controller
 {
     use ApiErrorResponses;
+
+    /**
+     * Try to get the authenticated user from either Firebase or Sanctum
+     */
+    private function getAuthenticatedUser(Request $request): ?User
+    {
+        // First check if already authenticated via middleware
+        if (Auth::check()) {
+            return Auth::user();
+        }
+
+        // Try Firebase authentication manually
+        $authorization = $request->bearerToken();
+        if (!$authorization) {
+            return null;
+        }
+
+        try {
+            // Use the same Firebase logic as the middleware
+            $firebaseAuth = app('firebase.auth');
+            $verifiedToken = $firebaseAuth->verifyIdToken($authorization, true);
+            $claims = $verifiedToken->claims()->all();
+            $uid = (string)($claims['sub'] ?? $claims['user_id'] ?? '');
+            
+            if ($uid) {
+                $user = User::where('firebase_uid', $uid)->first();
+                return $user;
+            }
+        } catch (\Throwable $e) {
+            // Firebase auth failed, that's OK for public endpoints
+        }
+
+        return null;
+    }
     /**
      * Display all packages with their category.
      *
@@ -37,18 +72,24 @@ class PackageController extends Controller
      * )
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $packages = Package::with('category')->get();
         
-        // If user is authenticated, include subscription status
-        if (Auth::check()) {
-            $user = Auth::user();
+        // Check for authenticated user from either Firebase or Sanctum
+        $user = $this->getAuthenticatedUser($request);
+        if ($user) {
             $subscribedPackageIds = $user->packages()->pluck('packages.id')->toArray();
             
             $packages = $packages->map(function ($package) use ($subscribedPackageIds) {
                 $packageArray = $package->toArray();
                 $packageArray['is_subscribed'] = in_array($package->id, $subscribedPackageIds);
+                return $packageArray;
+            });
+        } else {
+            $packages = $packages->map(function ($package) {
+                $packageArray = $package->toArray();
+                $packageArray['is_subscribed'] = false;
                 return $packageArray;
             });
         }
@@ -98,15 +139,11 @@ class PackageController extends Controller
      * @param string $id
      * @return JsonResponse
      */
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $cacheKey = "package_{$id}_with_facts";
-        
-        $package = cache()->remember($cacheKey, 3600, function () use ($id) {
-            return Package::with(['category', 'facts' => function ($query) {
-                $query->limit(2);
-            }])->find($id);
-        });
+        $package = Package::with(['category', 'facts' => function ($query) {
+            $query->limit(2);
+        }])->find($id);
 
         if (!$package) {
             return $this->notFoundResponse('package', $id);
@@ -114,10 +151,12 @@ class PackageController extends Controller
 
         $packageData = $package->toArray();
         
-        // If user is authenticated, include subscription status
-        if (Auth::check()) {
-            $user = Auth::user();
+        // Check for authenticated user from either Firebase or Sanctum
+        $user = $this->getAuthenticatedUser($request);
+        if ($user) {
             $packageData['is_subscribed'] = $user->packages()->where('packages.id', $id)->exists();
+        } else {
+            $packageData['is_subscribed'] = false;
         }
 
         return response()->json([

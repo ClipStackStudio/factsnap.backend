@@ -48,5 +48,28 @@ Route::middleware('api')->group(function() {
         
         // Admin routes for cache management
         Route::post('/categories/clear-cache', [CategoryController::class, 'clearCache']);
+
+        // Debug route - temporary
+        Route::get('/debug/user-packages', function() {
+            if (!Auth::check()) {
+                return response()->json(['error' => 'Not authenticated']);
+            }
+            
+            $user = Auth::user();
+            $packages = $user->packages()->get();
+            $packageIds = $user->packages()->pluck('packages.id');
+            
+            return response()->json([
+                'user_id' => $user->id,
+                'packages_count' => $packages->count(),
+                'package_ids' => $packageIds,
+                'packages' => $packages->toArray()
+            ]);
+        })->middleware('auth:sanctum');
+    });
+
+    // Firebase phone authentication routes
+    Route::prefix('auth/firebase')->group(function() {
+        Route::post('/phone/verify', [FirebaseAuthController::class, 'verifyToken']);
     });
 });
