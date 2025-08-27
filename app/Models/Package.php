@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Package extends Model
@@ -17,7 +18,7 @@ class Package extends Model
      *
      * @var string
      */
-    protected $table = 'package';
+    protected $table = 'packages';
 
     /**
      * The attributes that are mass assignable.
@@ -60,5 +61,17 @@ class Package extends Model
     public function facts(): HasMany
     {
         return $this->hasMany(Fact::class);
+    }
+
+    /**
+     * Get the users that have subscribed to this package.
+     *
+     * @return BelongsToMany
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_packages')
+            ->withPivot('subscribed_at')
+            ->withTimestamps();
     }
 }

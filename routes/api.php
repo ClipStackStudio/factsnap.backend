@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\GuestController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\UserPackageController;
 use App\Http\Controllers\FirebaseAuthController;
 use OpenApi\Annotations as OA;
 
@@ -33,6 +34,12 @@ Route::middleware('api')->group(function() {
     // Firebase-protected current user endpoint
     Route::middleware(\App\Http\Middleware\FirebaseAuthenticate::class)->group(function () {
         Route::get('/me', [FirebaseAuthController::class, 'me']);
+        
+        // Firebase user package management routes
+        Route::get('/user/packages', [UserPackageController::class, 'index']);
+        Route::post('/user/packages/{packageId}/subscribe', [UserPackageController::class, 'subscribe']);
+        Route::delete('/user/packages/{packageId}/unsubscribe', [UserPackageController::class, 'unsubscribe']);
+        Route::get('/user/packages/{packageId}/status', [UserPackageController::class, 'status']);
     });
 
     Route::middleware('auth:sanctum')->group(function() {

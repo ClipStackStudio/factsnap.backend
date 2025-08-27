@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PackageController extends Controller
 {
@@ -39,6 +40,18 @@ class PackageController extends Controller
     public function index(): JsonResponse
     {
         $packages = Package::with('category')->get();
+        
+        // If user is authenticated, include subscription status
+        if (Auth::check()) {
+            $user = Auth::user();
+            $subscribedPackageIds = $user->packages()->pluck('packages.id')->toArray();
+            
+            $packages = $packages->map(function ($package) use ($subscribedPackageIds) {
+                $packageArray = $package->toArray();
+                $packageArray['is_subscribed'] = in_array($package->id, $subscribedPackageIds);
+                return $packageArray;
+            });
+        }
 
         return response()->json([
             'success' => true,
@@ -99,9 +112,17 @@ class PackageController extends Controller
             return $this->notFoundResponse('package', $id);
         }
 
+        $packageData = $package->toArray();
+        
+        // If user is authenticated, include subscription status
+        if (Auth::check()) {
+            $user = Auth::user();
+            $packageData['is_subscribed'] = $user->packages()->where('packages.id', $id)->exists();
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $package,
+            'data' => $packageData,
         ]);
     }
 

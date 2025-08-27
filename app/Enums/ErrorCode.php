@@ -16,6 +16,10 @@ enum ErrorCode: int
     case MISSING_REQUIRED_FIELD = 2003;
     case INVALID_ACCESS_LEVEL = 2004;
 
+    // User package subscription errors (400)
+    case ALREADY_SUBSCRIBED = 2005;
+    case NOT_SUBSCRIBED = 2006;
+
     // Authentication errors (401)
     case UNAUTHORIZED = 3001;
     case INVALID_TOKEN = 3002;
@@ -39,6 +43,7 @@ enum ErrorCode: int
         return match ($this) {
             self::CATEGORY_NOT_FOUND, self::PACKAGE_NOT_FOUND, self::FACT_NOT_FOUND, self::USER_NOT_FOUND => 404,
             self::VALIDATION_ERROR, self::INVALID_UUID, self::MISSING_REQUIRED_FIELD, self::INVALID_ACCESS_LEVEL => 422,
+            self::ALREADY_SUBSCRIBED, self::NOT_SUBSCRIBED => 400,
             self::UNAUTHORIZED, self::INVALID_TOKEN, self::TOKEN_EXPIRED => 401,
             self::FORBIDDEN, self::INSUFFICIENT_PERMISSIONS, self::ACCESS_LEVEL_REQUIRED => 403,
             self::INTERNAL_SERVER_ERROR, self::DATABASE_ERROR, self::CACHE_ERROR => 500,
@@ -59,6 +64,8 @@ enum ErrorCode: int
             self::INVALID_UUID => 'The provided identifier is not valid.',
             self::MISSING_REQUIRED_FIELD => 'A required field is missing.',
             self::INVALID_ACCESS_LEVEL => 'The specified access level is not valid.',
+            self::ALREADY_SUBSCRIBED => 'You are already subscribed to this package.',
+            self::NOT_SUBSCRIBED => 'You are not subscribed to this package.',
             self::UNAUTHORIZED => 'You are not authorized to access this resource.',
             self::INVALID_TOKEN => 'The provided authentication token is invalid.',
             self::TOKEN_EXPIRED => 'Your authentication token has expired.',
