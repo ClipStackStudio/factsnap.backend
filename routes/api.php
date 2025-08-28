@@ -31,41 +31,28 @@ Route::middleware('api')->group(function() {
     Route::post('/auth/firebase/sign-in', [FirebaseAuthController::class, 'signInWithIdToken'])
         ->middleware('throttle:20,1');
 
-    // Firebase-protected current user endpoint
-    Route::middleware(\App\Http\Middleware\FirebaseAuthenticate::class)->group(function () {
+    // Unified user package management routes (supports both Firebase and Sanctum authentication)
+    Route::middleware('dual.auth')->group(function () {
         Route::get('/me', [FirebaseAuthController::class, 'me']);
         
-        // Firebase user package management routes
-        Route::get('/user/packages', [UserPackageController::class, 'index']);
-        Route::post('/user/packages/{packageId}/subscribe', [UserPackageController::class, 'subscribe']);
-        Route::delete('/user/packages/{packageId}/unsubscribe', [UserPackageController::class, 'unsubscribe']);
-        Route::get('/user/packages/{packageId}/status', [UserPackageController::class, 'status']);
+        // Unified package management routes for both Firebase and guest users
+        Route::prefix('user')->group(function() {
+            Route::get('/packages', [UserPackageController::class, 'index']);
+            Route::post('/packages/{packageId}/subscribe', [UserPackageController::class, 'subscribe']);
+            Route::delete('/packages/{packageId}/unsubscribe', [UserPackageController::class, 'unsubscribe']);
+            Route::get('/packages/{packageId}/status', [UserPackageController::class, 'status']);
+        });
     });
 
     Route::middleware('auth:sanctum')->group(function() {
         Route::post('/auth/logout', [ProfileController::class, 'logout']);
         Route::get('/protected/ping', function() { return ['message' => 'pong']; }); // simple protected test
         
+        // Guest token refresh (Sanctum only)
+        Route::post('/auth/guest/refresh-token', [GuestController::class, 'refreshToken']);
+        
         // Admin routes for cache management
         Route::post('/categories/clear-cache', [CategoryController::class, 'clearCache']);
-
-        // Debug route - temporary
-        Route::get('/debug/user-packages', function() {
-            if (!Auth::check()) {
-                return response()->json(['error' => 'Not authenticated']);
-            }
-            
-            $user = Auth::user();
-            $packages = $user->packages()->get();
-            $packageIds = $user->packages()->pluck('packages.id');
-            
-            return response()->json([
-                'user_id' => $user->id,
-                'packages_count' => $packages->count(),
-                'package_ids' => $packageIds,
-                'packages' => $packages->toArray()
-            ]);
-        })->middleware('auth:sanctum');
     });
 
     // Firebase phone authentication routes

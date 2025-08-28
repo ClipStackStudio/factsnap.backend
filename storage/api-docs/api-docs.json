@@ -1,8 +1,8 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Factsnap API",
-        "description": "API for managing educational categories, packages, and facts",
+        "title": "FactSnap API",
+        "description": "API for managing educational categories, packages, and facts.\n *\n * # Authentication\n * \n * This API supports **dual authentication**:\n * \n * ## Firebase Authentication (for regular users)\n * - **Token Type**: Firebase ID Token\n * - **Format**: `Authorization: Bearer <firebase_id_token>`\n * - **Access**: 'free', 'loggedIn', and 'premium' packages (if premium user)\n * \n * ## Sanctum Authentication (for guest users)  \n * - **Token Type**: Sanctum Bearer Token (10-year expiration)\n * - **Format**: `Authorization: Bearer <sanctum_token>`\n * - **Access**: 'free' and 'loggedIn' packages ('premium' if created as premium guest)\n * \n * ## Package Access Levels\n * - **free**: No authentication required\n * - **loggedIn**: Requires authentication (Firebase OR Sanctum)\n * - **premium**: Requires premium user status",
         "contact": {
             "email": "support@factsnap.com"
         },
@@ -15,6 +15,100 @@
         }
     ],
     "paths": {
+        "/api/auth/guest": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Create a guest user",
+                "description": "Create a new guest user with a long-lived Sanctum token (10 years expiration). Guest users can subscribe to packages based on their access level.",
+                "operationId": "createGuest",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "is_premium": {
+                                        "description": "Whether this guest should have premium access",
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Guest user created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Guest user created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "description": "Sanctum authentication token",
+                                                    "type": "string"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Guest ABC123"
+                                                        },
+                                                        "is_guest": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "is_premium": {
+                                                            "type": "boolean",
+                                                            "example": false
+                                                        },
+                                                        "abilities": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "guest",
+                                                                    "premium"
+                                                                ]
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token_expires_at": {
+                                                    "description": "Token expiration date (10 years from now)",
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/categories-only": {
             "get": {
                 "tags": [
@@ -382,7 +476,7 @@
         "/auth/firebase/sign-in": {
             "post": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
                 "summary": "Sign in with Firebase Phone Auth",
                 "description": "Verifies a Firebase ID token (phone auth), upserts a local user, and returns the user profile. Returns 201 on first-time creation and 200 on subsequent sign-ins.",
@@ -508,7 +602,7 @@
         "/me": {
             "get": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
                 "summary": "Get the current authenticated user",
                 "description": "Returns the authenticated user profile. Requires a valid Firebase ID token in Authorization header.",
@@ -674,7 +768,7 @@
                     "User Packages"
                 ],
                 "summary": "Get user's subscribed packages",
-                "description": "Retrieve all packages that the authenticated user has subscribed to",
+                "description": "Retrieve all packages that the authenticated user has subscribed to. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens).",
                 "operationId": "getUserPackages",
                 "responses": {
                     "200": {
@@ -734,7 +828,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -746,7 +840,13 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "dualAuth": []
+                    },
+                    {
+                        "firebaseAuth": []
+                    },
+                    {
+                        "sanctumAuth": []
                     }
                 ]
             }
@@ -757,12 +857,13 @@
                     "User Packages"
                 ],
                 "summary": "Subscribe to a package",
-                "description": "Subscribe the authenticated user to a specific package",
+                "description": "Subscribe the authenticated user to a specific package. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens). Access levels: 'free' (all users), 'loggedIn' (Firebase users and guests), 'premium' (premium users only).",
                 "operationId": "subscribeToPackage",
                 "parameters": [
                     {
                         "name": "packageId",
                         "in": "path",
+                        "description": "UUID of the package to subscribe to",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -782,7 +883,8 @@
                                             "example": true
                                         },
                                         "message": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "example": "Successfully subscribed to package: Package Name"
                                         },
                                         "data": {
                                             "properties": {
@@ -817,7 +919,7 @@
                         }
                     },
                     "403": {
-                        "description": "Access denied",
+                        "description": "Access denied - user access level insufficient for package",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -837,7 +939,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -849,7 +951,13 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "dualAuth": []
+                    },
+                    {
+                        "firebaseAuth": []
+                    },
+                    {
+                        "sanctumAuth": []
                     }
                 ]
             }
@@ -860,12 +968,13 @@
                     "User Packages"
                 ],
                 "summary": "Unsubscribe from a package",
-                "description": "Unsubscribe the authenticated user from a specific package",
+                "description": "Unsubscribe the authenticated user from a specific package. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens).",
                 "operationId": "unsubscribeFromPackage",
                 "parameters": [
                     {
                         "name": "packageId",
                         "in": "path",
+                        "description": "UUID of the package to unsubscribe from",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -885,7 +994,8 @@
                                             "example": true
                                         },
                                         "message": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "example": "Successfully unsubscribed from package: Package Name"
                                         },
                                         "data": {
                                             "properties": {
@@ -930,7 +1040,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -942,7 +1052,13 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "dualAuth": []
+                    },
+                    {
+                        "firebaseAuth": []
+                    },
+                    {
+                        "sanctumAuth": []
                     }
                 ]
             }
@@ -953,12 +1069,13 @@
                     "User Packages"
                 ],
                 "summary": "Check subscription status",
-                "description": "Check if the authenticated user is subscribed to a specific package",
+                "description": "Check if the authenticated user is subscribed to a specific package and whether they can subscribe. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens).",
                 "operationId": "getSubscriptionStatus",
                 "parameters": [
                     {
                         "name": "packageId",
                         "in": "path",
+                        "description": "UUID of the package to check subscription status for",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -980,21 +1097,31 @@
                                         "data": {
                                             "properties": {
                                                 "is_subscribed": {
+                                                    "description": "Whether user is subscribed to this package",
                                                     "type": "boolean"
                                                 },
                                                 "can_subscribe": {
+                                                    "description": "Whether user has access level to subscribe to this package",
                                                     "type": "boolean"
                                                 },
                                                 "subscribed_at": {
+                                                    "description": "When user subscribed (null if not subscribed)",
                                                     "type": "string",
                                                     "format": "date-time",
                                                     "nullable": true
                                                 },
                                                 "package_name": {
+                                                    "description": "Name of the package",
                                                     "type": "string"
                                                 },
                                                 "access_level_required": {
-                                                    "type": "string"
+                                                    "description": "Required access level for this package",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "free",
+                                                        "loggedIn",
+                                                        "premium"
+                                                    ]
                                                 }
                                             },
                                             "type": "object"
@@ -1016,7 +1143,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1028,7 +1155,13 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "dualAuth": []
+                    },
+                    {
+                        "firebaseAuth": []
+                    },
+                    {
+                        "sanctumAuth": []
                     }
                 ]
             }
@@ -1196,7 +1329,6 @@
                 "required": [
                     "id",
                     "name",
-                    "firebase_uid",
                     "is_guest",
                     "is_premium",
                     "created_at",
@@ -1220,7 +1352,9 @@
                         "nullable": true
                     },
                     "firebase_uid": {
-                        "type": "string"
+                        "description": "Firebase UID for Firebase authenticated users, null for guest users",
+                        "type": "string",
+                        "nullable": true
                     },
                     "phone_number": {
                         "type": "string",
@@ -1233,6 +1367,7 @@
                         "nullable": true
                     },
                     "is_guest": {
+                        "description": "True for guest users created via Sanctum, false for Firebase users",
                         "type": "boolean"
                     },
                     "is_premium": {
@@ -1256,30 +1391,41 @@
                 "bearerFormat": "JWT",
                 "scheme": "bearer"
             },
-            "bearerAuth": {
+            "firebaseAuth": {
                 "type": "http",
-                "description": "Use a Firebase ID token from the client SDK in the Authorization header. Example: Authorization: Bearer <idToken>",
+                "description": "Firebase ID Token obtained from Firebase SDK. Use in Authorization header: Bearer <firebase_id_token>",
                 "bearerFormat": "JWT",
+                "scheme": "bearer"
+            },
+            "sanctumAuth": {
+                "type": "http",
+                "description": "Sanctum Bearer Token for guest users. Get token from POST /api/auth/guest. Use in Authorization header: Bearer <sanctum_token>",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
+            },
+            "dualAuth": {
+                "type": "http",
+                "description": "Accepts either Firebase ID tokens OR Sanctum tokens. Firebase is tried first, then Sanctum as fallback.",
                 "scheme": "bearer"
             }
         }
     },
     "tags": [
         {
-            "name": "Auth",
-            "description": "Authentication using Firebase Phone Auth."
-        },
-        {
-            "name": "Categories",
-            "description": "Categories"
-        },
-        {
-            "name": "Packages",
-            "description": "Packages"
+            "name": "Authentication",
+            "description": "User authentication endpoints for Firebase and Guest users"
         },
         {
             "name": "User Packages",
-            "description": "User Packages"
+            "description": "Package subscription management for authenticated users (both Firebase and Guest users). Uses unified endpoints that support dual authentication."
+        },
+        {
+            "name": "Packages",
+            "description": "Public package browsing and information retrieval"
+        },
+        {
+            "name": "Categories",
+            "description": "Package category browsing and filtering"
         }
     ]
 }

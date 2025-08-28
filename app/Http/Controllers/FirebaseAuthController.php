@@ -54,7 +54,7 @@ class FirebaseAuthController extends Controller
      *
      * @OA\Post(
      *   path="/auth/firebase/sign-in",
-     *   tags={"Auth"},
+     *   tags={"Authentication"},
      *   summary="Sign in with Firebase Phone Auth",
      *   description="Verifies a Firebase ID token (phone auth), upserts a local user, and returns the user profile. Returns 201 on first-time creation and 200 on subsequent sign-ins.",
      *   @OA\RequestBody(
@@ -224,7 +224,7 @@ class FirebaseAuthController extends Controller
      * 
      * @OA\Get(
      *   path="/me",
-     *   tags={"Auth"},
+     *   tags={"Authentication"},
      *   security={{"bearerAuth": {}}},
      *   summary="Get the current authenticated user",
      *   description="Returns the authenticated user profile. Requires a valid Firebase ID token in Authorization header.",
