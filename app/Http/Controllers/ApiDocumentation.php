@@ -6,7 +6,26 @@ namespace App\Http\Controllers;
  * @OA\Info(
  *     title="Factsnap API",
  *     version="1.0.0",
- *     description="API for managing educational categories, packages, and facts",
+ *     description="API for managing educational categories, packages, and facts.
+ *
+ * # Authentication
+ * 
+ * This API uses **Firebase Authentication** supporting both regular and guest users:
+ * 
+ * ## Regular Users (Phone Authentication)
+ * - Use Firebase phone verification to authenticate
+ * - Send Firebase ID token in `Authorization: Bearer <firebase_id_token>` header
+ * - Access to 'free', 'loggedIn', and 'premium' packages (if premium)
+ * 
+ * ## Guest Users (Anonymous Authentication)  
+ * - Use Firebase anonymous authentication (no phone required)
+ * - Send Firebase ID token in `Authorization: Bearer <firebase_id_token>` header
+ * - Access to 'free' and 'loggedIn' packages ('premium' if created as premium guest)
+ * 
+ * ## Package Access Levels
+ * - **free**: No authentication required
+ * - **loggedIn**: Requires Firebase authentication (phone OR anonymous)
+ * - **premium**: Requires premium user status",
  *     @OA\Contact(
  *         email="support@factsnap.com"
  *     )

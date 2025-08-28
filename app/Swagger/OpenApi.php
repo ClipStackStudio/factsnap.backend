@@ -12,32 +12,17 @@ use OpenApi\Annotations as OA;
  *   type="http",
  *   scheme="bearer",
  *   bearerFormat="JWT",
- *   description="Firebase ID Token obtained from Firebase SDK. Use in Authorization header: Bearer <firebase_id_token>"
- * )
- * 
- * @OA\SecurityScheme(
- *   securityScheme="sanctumAuth", 
- *   type="http",
- *   scheme="bearer",
- *   bearerFormat="Token",
- *   description="Sanctum Bearer Token for guest users. Get token from POST /api/auth/guest. Use in Authorization header: Bearer <sanctum_token>"
- * )
- * 
- * @OA\SecurityScheme(
- *   securityScheme="dualAuth",
- *   type="http", 
- *   scheme="bearer",
- *   description="Accepts either Firebase ID tokens OR Sanctum tokens. Firebase is tried first, then Sanctum as fallback."
+ *   description="Firebase ID Token obtained from Firebase SDK (phone or anonymous authentication). Use in Authorization header: Bearer <firebase_id_token>"
  * )
  *
  * @OA\Tag(
  *   name="Authentication",
- *   description="User authentication endpoints for Firebase and Guest users"
+ *   description="Firebase authentication endpoints for regular and guest users"
  * )
  * 
  * @OA\Tag(
  *   name="User Packages",
- *   description="Package subscription management for authenticated users (both Firebase and Guest users). Uses unified endpoints that support dual authentication."
+ *   description="Package subscription management for Firebase authenticated users (both regular and guest users)."
  * )
  * 
  * @OA\Tag(

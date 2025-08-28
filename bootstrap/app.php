@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'dual.auth' => \App\Http\Middleware\DualAuthenticate::class,
+            'auth.firebase' => \App\Http\Middleware\AuthMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

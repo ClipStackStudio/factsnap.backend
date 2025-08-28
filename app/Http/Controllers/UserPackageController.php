@@ -18,10 +18,10 @@ class UserPackageController extends Controller
      * @OA\Get(
      *     path="/api/user/packages",
      *     summary="Get user's subscribed packages",
-     *     description="Retrieve all packages that the authenticated user has subscribed to. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens).",
+     *     description="Retrieve all packages that the authenticated user has subscribed to. Supports Firebase authentication for both regular users (phone auth) and guest users (anonymous auth).",
      *     operationId="getUserPackages",
      *     tags={"User Packages"},
-     *     security={{"dualAuth": {}}, {"firebaseAuth": {}}, {"sanctumAuth": {}}},
+     *     security={{"firebaseAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -41,7 +41,7 @@ class UserPackageController extends Controller
      *             ))
      *         )
      *     ),
-     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
+     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
      * )
      */
     public function index(): JsonResponse
@@ -73,10 +73,10 @@ class UserPackageController extends Controller
      * @OA\Post(
      *     path="/api/user/packages/{packageId}/subscribe",
      *     summary="Subscribe to a package",
-     *     description="Subscribe the authenticated user to a specific package. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens). Access levels: 'free' (all users), 'loggedIn' (Firebase users and guests), 'premium' (premium users only).",
+     *     description="Subscribe the authenticated user to a specific package. Supports Firebase authentication for both regular users (phone auth) and guest users (anonymous auth). Access levels: 'free' (all users), 'loggedIn' (Firebase authenticated users), 'premium' (premium users only).",
      *     operationId="subscribeToPackage",
      *     tags={"User Packages"},
-     *     security={{"dualAuth": {}}, {"firebaseAuth": {}}, {"sanctumAuth": {}}},
+     *     security={{"firebaseAuth": {}}},
      *     @OA\Parameter(
      *         name="packageId",
      *         in="path",
@@ -100,7 +100,7 @@ class UserPackageController extends Controller
      *     @OA\Response(response=400, description="Already subscribed", @OA\JsonContent(ref="#/components/schemas/ApiError")),
      *     @OA\Response(response=403, description="Access denied - user access level insufficient for package", @OA\JsonContent(ref="#/components/schemas/ApiError")),
      *     @OA\Response(response=404, description="Package not found", @OA\JsonContent(ref="#/components/schemas/ApiError")),
-     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
+     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
      * )
      */
     public function subscribe(Request $request, string $packageId): JsonResponse
@@ -150,10 +150,10 @@ class UserPackageController extends Controller
      * @OA\Delete(
      *     path="/api/user/packages/{packageId}/unsubscribe",
      *     summary="Unsubscribe from a package",
-     *     description="Unsubscribe the authenticated user from a specific package. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens).",
+     *     description="Unsubscribe the authenticated user from a specific package. Supports Firebase authentication for both regular users (phone auth) and guest users (anonymous auth).",
      *     operationId="unsubscribeFromPackage",
      *     tags={"User Packages"},
-     *     security={{"dualAuth": {}}, {"firebaseAuth": {}}, {"sanctumAuth": {}}},
+     *     security={{"firebaseAuth": {}}},
      *     @OA\Parameter(
      *         name="packageId",
      *         in="path",
@@ -176,7 +176,7 @@ class UserPackageController extends Controller
      *     ),
      *     @OA\Response(response=400, description="Not subscribed to this package", @OA\JsonContent(ref="#/components/schemas/ApiError")),
      *     @OA\Response(response=404, description="Package not found", @OA\JsonContent(ref="#/components/schemas/ApiError")),
-     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
+     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
      * )
      */
     public function unsubscribe(Request $request, string $packageId): JsonResponse
@@ -214,10 +214,10 @@ class UserPackageController extends Controller
      * @OA\Get(
      *     path="/api/user/packages/{packageId}/status",
      *     summary="Check subscription status",
-     *     description="Check if the authenticated user is subscribed to a specific package and whether they can subscribe. Supports both Firebase authentication (ID tokens) and Guest authentication (Sanctum tokens).",
+     *     description="Check if the authenticated user is subscribed to a specific package and whether they can subscribe. Supports Firebase authentication for both regular users (phone auth) and guest users (anonymous auth).",
      *     operationId="getSubscriptionStatus",
      *     tags={"User Packages"},
-     *     security={{"dualAuth": {}}, {"firebaseAuth": {}}, {"sanctumAuth": {}}},
+     *     security={{"firebaseAuth": {}}},
      *     @OA\Parameter(
      *         name="packageId",
      *         in="path",
@@ -240,7 +240,7 @@ class UserPackageController extends Controller
      *         )
      *     ),
      *     @OA\Response(response=404, description="Package not found", @OA\JsonContent(ref="#/components/schemas/ApiError")),
-     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token or Guest Sanctum token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
+     *     @OA\Response(response=401, description="Unauthorized - Invalid or missing Firebase ID token", @OA\JsonContent(ref="#/components/schemas/ApiError"))
      * )
      */
     public function status(Request $request, string $packageId): JsonResponse
@@ -276,8 +276,8 @@ class UserPackageController extends Controller
             case 'free':
                 return true;
             case 'loggedIn':
-                // Allow access for both Firebase authenticated users and Sanctum authenticated guests
-                return !empty($user->firebase_uid) || $user->is_guest;
+                // All authenticated users (both regular Firebase users and anonymous Firebase users)
+                return !empty($user->firebase_uid);
             case 'premium':
                 return $user->is_premium;
             default:

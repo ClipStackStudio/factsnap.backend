@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\GuestController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PackageController;
@@ -24,18 +23,19 @@ Route::middleware('api')->group(function() {
     Route::get('/packages/{id}/sample-facts', [PackageController::class, 'sampleFacts']);
     Route::get('/packages/filter/access-level', [PackageController::class, 'byAccessLevel']);
 
-    // Auth routes
-    Route::post('/auth/guest', [GuestController::class, 'createGuest']);
-
-    // Firebase Phone Auth sign-in with rate limiting
+    // Firebase Authentication sign-in (supports phone and anonymous auth) with rate limiting
     Route::post('/auth/firebase/sign-in', [FirebaseAuthController::class, 'signInWithIdToken'])
         ->middleware('throttle:20,1');
 
-    // Unified user package management routes (supports both Firebase and Sanctum authentication)
-    Route::middleware('dual.auth')->group(function () {
+    // Unified user package management routes (supports Firebase authentication for both regular and guest users)
+    Route::middleware('auth.firebase')->group(function () {
         Route::get('/me', [FirebaseAuthController::class, 'me']);
         
-        // Unified package management routes for both Firebase and guest users
+        // Phone verification for existing users (guest -> verified conversion)
+        Route::post('/auth/firebase/verify-phone', [FirebaseAuthController::class, 'verifyPhoneNumber'])
+            ->middleware('throttle:10,1');
+        
+        // Package management routes for authenticated users (Firebase regular and guest users)
         Route::prefix('user')->group(function() {
             Route::get('/packages', [UserPackageController::class, 'index']);
             Route::post('/packages/{packageId}/subscribe', [UserPackageController::class, 'subscribe']);
@@ -47,9 +47,6 @@ Route::middleware('api')->group(function() {
     Route::middleware('auth:sanctum')->group(function() {
         Route::post('/auth/logout', [ProfileController::class, 'logout']);
         Route::get('/protected/ping', function() { return ['message' => 'pong']; }); // simple protected test
-        
-        // Guest token refresh (Sanctum only)
-        Route::post('/auth/guest/refresh-token', [GuestController::class, 'refreshToken']);
         
         // Admin routes for cache management
         Route::post('/categories/clear-cache', [CategoryController::class, 'clearCache']);

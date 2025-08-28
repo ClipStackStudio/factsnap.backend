@@ -14,7 +14,7 @@ use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
 use Kreait\Firebase\Exception\Auth\RevokedIdToken;
 use Kreait\Firebase\Factory;
 
-class DualAuthenticate
+class AuthMiddleware
 {
     use \App\Http\Controllers\ApiErrorResponses;
 
@@ -46,18 +46,13 @@ class DualAuthenticate
             return $this->unauthorizedResponse('Missing Bearer token.');
         }
 
-        // First, try Firebase authentication
+        // Try Firebase authentication (supports both phone and anonymous auth)
         if ($this->tryFirebaseAuth($request, $authorization)) {
             return $next($request);
         }
 
-        // If Firebase fails, try Sanctum authentication
-        if ($this->trySanctumAuth($request)) {
-            return $next($request);
-        }
-
-        // Both authentication methods failed
-        return $this->unauthorizedResponse('Invalid or expired token.');
+        // Firebase authentication failed
+        return $this->unauthorizedResponse('Invalid or expired Firebase token.');
     }
 
     private function tryFirebaseAuth(Request $request, string $authorization): bool
@@ -72,6 +67,10 @@ class DualAuthenticate
                 return false;
             }
 
+            // Check if this is anonymous authentication
+            $signInProvider = $claims['firebase']['sign_in_provider'] ?? null;
+            $isAnonymous = $signInProvider === 'anonymous';
+
             $fbUser = $auth->getUser($uid);
             $user = User::where('firebase_uid', $uid)->first();
             
@@ -84,6 +83,14 @@ class DualAuthenticate
             }
 
             $user->firebase_uid = $uid;
+            
+            // Set guest status based on authentication type
+            if ($isAnonymous) {
+                $user->is_guest = true;
+            } else {
+                $user->is_guest = false;
+            }
+            
             if (!empty($fbUser->displayName)) {
                 $user->name = $fbUser->displayName;
             }
@@ -99,10 +106,18 @@ class DualAuthenticate
             }
 
             if (empty($user->name)) {
-                $user->name = 'User '.substr($uid, -6);
+                if ($isAnonymous) {
+                    $user->name = 'Guest '.substr($uid, -6);
+                } else {
+                    $user->name = 'User '.substr($uid, -6);
+                }
             }
             if (empty($user->email)) {
-                $user->email = $uid.'@phone.firebase';
+                if ($isAnonymous) {
+                    $user->email = $uid.'@guest.firebase';
+                } else {
+                    $user->email = $uid.'@phone.firebase';
+                }
             }
             if (empty($user->password)) {
                 $user->password = \Illuminate\Support\Str::random(40);
@@ -115,30 +130,9 @@ class DualAuthenticate
 
             return true;
         } catch (RevokedIdToken|FailedToVerifyToken $e) {
-            // Firebase token is invalid, try Sanctum
             return false;
         } catch (\Throwable $e) {
             Log::warning('Firebase token verification error', ['error' => $e->getMessage()]);
-            return false;
-        }
-    }
-
-    private function trySanctumAuth(Request $request): bool
-    {
-        try {
-            // Use Sanctum's authentication logic
-            $guard = Auth::guard('sanctum');
-            $user = $guard->user();
-            
-            if ($user) {
-                Auth::setUser($user);
-                $request->setUserResolver(fn () => $user);
-                return true;
-            }
-            
-            return false;
-        } catch (\Throwable $e) {
-            Log::warning('Sanctum token verification error', ['error' => $e->getMessage()]);
             return false;
         }
     }
