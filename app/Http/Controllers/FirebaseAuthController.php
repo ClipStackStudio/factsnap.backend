@@ -184,6 +184,9 @@ class FirebaseAuthController extends Controller
             $user->phone_verified_at = $user->phone_verified_at ?? now();
         }
 
+        // Set last logged in timestamp
+        $user->last_logged_in_at = now();
+
         // Ensure required fields exist due to schema constraints
         if (empty($user->name)) {
             if ($isAnonymous) {
@@ -219,6 +222,7 @@ class FirebaseAuthController extends Controller
                 'firebase_uid' => $user->firebase_uid,
                 'phone_number' => $user->phone_number,
                 'phone_verified_at' => $user->phone_verified_at,
+                'last_logged_in_at' => $user->last_logged_in_at,
                 'is_guest' => (bool) $user->is_guest,
                 'is_premium' => (bool) $user->is_premium,
                 'created_at' => $user->created_at,
@@ -350,6 +354,7 @@ class FirebaseAuthController extends Controller
                 'firebase_uid' => $currentUser->firebase_uid,
                 'phone_number' => $currentUser->phone_number,
                 'phone_verified_at' => $currentUser->phone_verified_at,
+                'last_logged_in_at' => $currentUser->last_logged_in_at,
                 'is_guest' => (bool) $currentUser->is_guest,
                 'is_premium' => (bool) $currentUser->is_premium,
                 'created_at' => $currentUser->created_at,

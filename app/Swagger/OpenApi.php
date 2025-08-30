@@ -43,10 +43,11 @@ use OpenApi\Annotations as OA;
  *   @OA\Property(property="name", type="string"),
  *   @OA\Property(property="email", type="string", nullable=true),
  *   @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true),
- *   @OA\Property(property="firebase_uid", type="string", nullable=true, description="Firebase UID for Firebase authenticated users, null for guest users"),
+ *   @OA\Property(property="firebase_uid", type="string", nullable=true, description="Firebase UID for Firebase authenticated users"),
  *   @OA\Property(property="phone_number", type="string", nullable=true, example="+15551234567"),
  *   @OA\Property(property="phone_verified_at", type="string", format="date-time", nullable=true),
- *   @OA\Property(property="is_guest", type="boolean", description="True for guest users created via Sanctum, false for Firebase users"),
+ *   @OA\Property(property="last_logged_in_at", type="string", format="date-time", nullable=true, description="Last login timestamp. For guest users, this is set to creation time."),
+ *   @OA\Property(property="is_guest", type="boolean", description="True for anonymous Firebase users, false for phone-verified Firebase users"),
  *   @OA\Property(property="is_premium", type="boolean"),
  *   @OA\Property(property="created_at", type="string", format="date-time"),
  *   @OA\Property(property="updated_at", type="string", format="date-time")

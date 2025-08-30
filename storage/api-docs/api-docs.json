@@ -1264,7 +1264,7 @@
                         "nullable": true
                     },
                     "firebase_uid": {
-                        "description": "Firebase UID for Firebase authenticated users, null for guest users",
+                        "description": "Firebase UID for Firebase authenticated users",
                         "type": "string",
                         "nullable": true
                     },
@@ -1278,8 +1278,14 @@
                         "format": "date-time",
                         "nullable": true
                     },
+                    "last_logged_in_at": {
+                        "description": "Last login timestamp. For guest users, this is set to creation time.",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
                     "is_guest": {
-                        "description": "True for guest users created via Sanctum, false for Firebase users",
+                        "description": "True for anonymous Firebase users, false for phone-verified Firebase users",
                         "type": "boolean"
                     },
                     "is_premium": {
