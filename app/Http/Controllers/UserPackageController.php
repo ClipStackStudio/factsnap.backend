@@ -116,10 +116,7 @@ class UserPackageController extends Controller
         // Check if user has access to this package
         if (!$this->hasAccess($user, $package)) {
             $userLevel = $user->is_guest ? 'guest' : ($user->is_premium ? 'premium' : 'loggedIn');
-            return $this->errorResponse(
-                ErrorCode::ACCESS_LEVEL_REQUIRED,
-                "User access level '{$userLevel}' does not meet package requirement '{$package->access_level}'"
-            );
+            return $this->accessDeniedResponse($userLevel, $package->access_level);
         }
         
         // Check if already subscribed
@@ -276,8 +273,8 @@ class UserPackageController extends Controller
             case 'free':
                 return true;
             case 'loggedIn':
-                // All authenticated users (both regular Firebase users and anonymous Firebase users)
-                return !empty($user->firebase_uid);
+                // Only verified Firebase users (exclude guest users)
+                return !empty($user->firebase_uid) && !$user->is_guest;
             case 'premium':
                 return $user->is_premium;
             default:

@@ -114,4 +114,23 @@ trait ApiErrorResponses
 
         return $this->errorResponse(ErrorCode::FORBIDDEN, $details);
     }
+
+    /**
+     * Return an access level required error response.
+     *
+     * @param string $userLevel Current user access level
+     * @param string $requiredLevel Required access level
+     * @param string $additionalContext Additional context
+     * @return JsonResponse
+     */
+    protected function accessDeniedResponse(string $userLevel, string $requiredLevel, string $additionalContext = ''): JsonResponse
+    {
+        $details = "Access denied. User access level '{$userLevel}' does not meet package requirement '{$requiredLevel}'.";
+        
+        if ($additionalContext) {
+            $details .= " {$additionalContext}";
+        }
+
+        return $this->errorResponse(ErrorCode::ACCESS_LEVEL_REQUIRED, $details);
+    }
 }
