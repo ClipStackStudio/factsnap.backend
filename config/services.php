@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'apns' => [
+        'key_id' => env('APNS_KEY_ID'),
+        'team_id' => env('APNS_TEAM_ID'),
+        'bundle_id' => env('APNS_BUNDLE_ID'),
+        'private_key' => env('APNS_PRIVATE_KEY'),
+        'production' => env('APNS_PRODUCTION', false),
+    ],
+
 ];

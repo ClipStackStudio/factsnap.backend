@@ -31,6 +31,15 @@ class User extends Authenticatable
         'phone_number',
         'phone_verified_at',
         'last_logged_in_at',
+        // push notification fields
+        'apns_device_token',
+        'notification_preferences',
+        'push_notifications_enabled',
+        // notification settings
+        'timezone',
+        'quiet_hours_start',
+        'quiet_hours_end',
+        'quiet_hours_enabled',
     ];
 
     /**
@@ -54,9 +63,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'last_logged_in_at' => 'datetime',
+            'notification_preferences' => 'array',
             'password' => 'hashed',
             'is_guest' => 'boolean',
             'is_premium' => 'boolean',
+            'push_notifications_enabled' => 'boolean',
+            'quiet_hours_enabled' => 'boolean',
         ];
     }
 
@@ -68,7 +80,15 @@ class User extends Authenticatable
     public function packages(): BelongsToMany
     {
         return $this->belongsToMany(Package::class, 'user_packages')
-            ->withPivot('subscribed_at')
+            ->withPivot('subscribed_at', 'delivery_frequency', 'delivery_time', 'delivery_days', 'next_delivery_at', 'push_enabled')
             ->withTimestamps();
+    }
+
+    /**
+     * Get the delivered facts for this user.
+     */
+    public function deliveredFacts()
+    {
+        return $this->hasMany(DeliveredFact::class);
     }
 }

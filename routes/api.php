@@ -41,6 +41,12 @@ Route::middleware('api')->group(function() {
             Route::post('/packages/{packageId}/subscribe', [UserPackageController::class, 'subscribe']);
             Route::delete('/packages/{packageId}/unsubscribe', [UserPackageController::class, 'unsubscribe']);
             Route::get('/packages/{packageId}/status', [UserPackageController::class, 'status']);
+
+            // Push notification management
+            Route::post('/push-token', [\App\Http\Controllers\PushNotificationController::class, 'registerDeviceToken']);
+            Route::put('/push-preferences', [\App\Http\Controllers\PushNotificationController::class, 'updatePreferences']);
+            Route::get('/delivered-facts', [\App\Http\Controllers\PushNotificationController::class, 'getDeliveredFacts']);
+            Route::patch('/delivered-facts/{id}/seen', [\App\Http\Controllers\PushNotificationController::class, 'markAsSeen']);
         });
     });
 

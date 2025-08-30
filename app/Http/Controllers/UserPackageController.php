@@ -106,6 +106,7 @@ class UserPackageController extends Controller
     public function subscribe(Request $request, string $packageId): JsonResponse
     {
         $user = Auth::user();
+        $rulesService = app(\App\Services\NotificationRulesService::class);
         
         try {
             $package = Package::findOrFail($packageId);
@@ -126,11 +127,63 @@ class UserPackageController extends Controller
                 "User ID '{$user->id}' is already subscribed to package ID '{$packageId}'"
             );
         }
+
+        // Apply default settings for user type
+        $defaultSettings = $rulesService->getDefaultSettings($user);
+        
+        // Validate and merge delivery settings
+        try {
+            $deliverySettings = $request->validate([
+                'delivery_enabled' => ['sometimes', 'boolean'],
+                'delivery_mode' => ['sometimes', 'string'],
+                'preferred_times' => ['sometimes', 'array'],
+                'preferred_times.*' => ['string', 'date_format:H:i'],
+                'days_of_week' => ['sometimes', 'array'],
+                'days_of_week.*' => ['integer', 'min:0', 'max:6'],
+                'delivery_window_start' => ['sometimes', 'date_format:H:i'],
+                'delivery_window_end' => ['sometimes', 'date_format:H:i'],
+                'per_day_quota' => ['sometimes', 'integer', 'min:1'],
+                'min_interval_minutes' => ['sometimes', 'integer', 'min:1'],
+            ]);
+            
+            // Merge with defaults
+            $deliverySettings = array_merge($defaultSettings, $deliverySettings);
+            
+            // Validate against user rules
+            $validationErrors = $rulesService->validateDeliverySettings($user, $deliverySettings);
+            if (!empty($validationErrors)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid delivery settings',
+                    'errors' => $validationErrors
+                ], 422);
+            }
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors(), 'Invalid delivery settings.');
+        }
         
         $subscribedAt = now();
+        $nextDelivery = $this->calculateNextDeliveryTime($deliverySettings, $user);
+        
         $user->packages()->attach($packageId, [
-            'subscribed_at' => $subscribedAt
+            'subscribed_at' => $subscribedAt,
+            'delivery_enabled' => $deliverySettings['delivery_enabled'] ?? true,
+            'delivery_mode' => $deliverySettings['delivery_mode'] ?? 'daily',
+            'preferred_times' => json_encode($deliverySettings['preferred_times'] ?? ['10:00']),
+            'days_of_week' => isset($deliverySettings['days_of_week']) ? json_encode($deliverySettings['days_of_week']) : null,
+            'delivery_window_start' => $deliverySettings['delivery_window_start'] ?? null,
+            'delivery_window_end' => $deliverySettings['delivery_window_end'] ?? null,
+            'per_day_quota' => $deliverySettings['per_day_quota'] ?? 1,
+            'min_interval_minutes' => $deliverySettings['min_interval_minutes'] ?? null,
+            'time_sensitive' => $deliverySettings['time_sensitive'] ?? false,
+            'next_delivery_at' => $nextDelivery,
         ]);
+
+        // Schedule first fact delivery if enabled
+        if (($deliverySettings['delivery_enabled'] ?? true) && $user->push_notifications_enabled && $user->apns_device_token) {
+            \App\Jobs\DeliverFactJob::dispatch($user, $package)->delay($nextDelivery);
+        }
         
         return response()->json([
             'success' => true,
@@ -138,7 +191,8 @@ class UserPackageController extends Controller
             'data' => [
                 'package_id' => $package->id,
                 'package_name' => $package->name,
-                'subscribed_at' => $subscribedAt
+                'subscribed_at' => $subscribedAt,
+                'delivery_settings' => array_merge($deliverySettings, ['next_delivery_at' => $nextDelivery])
             ]
         ], 201);
     }
@@ -280,5 +334,75 @@ class UserPackageController extends Controller
             default:
                 return false;
         }
+    }
+
+    /**
+     * Calculate next delivery time based on new notification rules
+     */
+    private function calculateNextDeliveryTime(array $settings, \App\Models\User $user): ?\Carbon\Carbon
+    {
+        $mode = $settings['delivery_mode'] ?? 'daily';
+        $preferredTimes = $settings['preferred_times'] ?? ['10:00'];
+        $daysOfWeek = $settings['days_of_week'] ?? null;
+        $userTimezone = $user->timezone ?? 'UTC';
+
+        $now = \Carbon\Carbon::now($userTimezone);
+        $rulesService = app(\App\Services\NotificationRulesService::class);
+
+        switch ($mode) {
+            case 'daily':
+                $time = $preferredTimes[0];
+                [$hour, $minute] = explode(':', $time);
+                $next = $now->copy()->addDay();
+                $next->setTime((int)$hour, (int)$minute, 0);
+                break;
+
+            case 'weekly':
+                $time = $preferredTimes[0];
+                $days = $daysOfWeek ?? [1, 2, 3, 4, 5]; // Default to weekdays
+                
+                $next = $now->copy()->addDay();
+                while (!in_array($next->dayOfWeek, $days)) {
+                    $next->addDay();
+                }
+                
+                [$hour, $minute] = explode(':', $time);
+                $next->setTime((int)$hour, (int)$minute, 0);
+                break;
+
+            case 'times_per_day':
+                // Schedule for the first preferred time
+                $time = $preferredTimes[0];
+                [$hour, $minute] = explode(':', $time);
+                $next = $now->copy()->addDay();
+                $next->setTime((int)$hour, (int)$minute, 0);
+                break;
+
+            case 'windowed':
+                $windowStart = $settings['delivery_window_start'] ?? '09:00';
+                $windowEnd = $settings['delivery_window_end'] ?? '18:00';
+                
+                [$startHour, $startMinute] = explode(':', $windowStart);
+                [$endHour, $endMinute] = explode(':', $windowEnd);
+                
+                $windowStartTime = $now->copy()->addDay()->setTime((int)$startHour, (int)$startMinute, 0);
+                $windowEndTime = $now->copy()->addDay()->setTime((int)$endHour, (int)$endMinute, 0);
+                
+                // Random time within the window
+                $randomMinutes = rand(0, $windowEndTime->diffInMinutes($windowStartTime));
+                $next = $windowStartTime->addMinutes($randomMinutes);
+                break;
+
+            default:
+                return null;
+        }
+
+        // Ensure it's not within quiet hours
+        $next = $rulesService->getNextAllowedTime($user, $next);
+        
+        // Apply jitter
+        $next = $rulesService->applyJitter($next);
+
+        return $next->utc();
     }
 }
