@@ -31,6 +31,11 @@ class User extends Authenticatable
         'phone_number',
         'phone_verified_at',
         'last_logged_in_at',
+        // push notification fields
+        'push_token',
+        'platform',
+        'is_token_active',
+        'token_registered_at',
     ];
 
     /**
@@ -54,9 +59,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'last_logged_in_at' => 'datetime',
+            'token_registered_at' => 'datetime',
             'password' => 'hashed',
             'is_guest' => 'boolean',
             'is_premium' => 'boolean',
+            'is_token_active' => 'boolean',
         ];
     }
 

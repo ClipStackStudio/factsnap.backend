@@ -41,6 +41,28 @@ Route::middleware('api')->group(function() {
             Route::post('/packages/{packageId}/subscribe', [UserPackageController::class, 'subscribe']);
             Route::delete('/packages/{packageId}/unsubscribe', [UserPackageController::class, 'unsubscribe']);
             Route::get('/packages/{packageId}/status', [UserPackageController::class, 'status']);
+            
+            // Delivery settings management
+            Route::get('/packages/{packageId}/delivery-settings', [UserPackageController::class, 'getDeliverySettings']);
+            Route::put('/packages/{packageId}/delivery-settings', [UserPackageController::class, 'updateDeliverySettings']);
+            
+            // Notification rules and capabilities
+            Route::get('/notification-rules', [UserPackageController::class, 'getNotificationRules']);
+
+            // Push notification management
+            Route::post('/push-token', [\App\Http\Controllers\PushNotificationController::class, 'registerDeviceToken']);
+            Route::get('/push-token', [\App\Http\Controllers\PushNotificationController::class, 'getPushToken']);
+            Route::delete('/push-token', [\App\Http\Controllers\PushNotificationController::class, 'deactivatePushToken']);
+            Route::put('/push-preferences', [\App\Http\Controllers\PushNotificationController::class, 'updatePreferences']);
+            
+            // Enhanced notification preferences
+            Route::get('/notification-preferences', [\App\Http\Controllers\PushNotificationController::class, 'getNotificationPreferences']);
+            Route::put('/notification-preferences', [\App\Http\Controllers\PushNotificationController::class, 'updateNotificationPreferences']);
+            
+            // Delivery status and history
+            Route::get('/delivery-status', [\App\Http\Controllers\PushNotificationController::class, 'getDeliveryStatus']);
+            Route::get('/delivered-facts', [\App\Http\Controllers\PushNotificationController::class, 'getDeliveredFacts']);
+            Route::patch('/delivered-facts/{id}/seen', [\App\Http\Controllers\PushNotificationController::class, 'markAsSeen']);
         });
     });
 

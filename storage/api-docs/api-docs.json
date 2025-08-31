@@ -698,6 +698,657 @@
                 }
             }
         },
+        "/api/user/push-token": {
+            "get": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get current push token information",
+                "description": "Get the current push notification token and platform information for the authenticated user.",
+                "operationId": "59cb6ab246ed8565b46f13cdb5a77a5d",
+                "responses": {
+                    "200": {
+                        "description": "Push token information retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "push_token": {
+                                                    "description": "Current push token",
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "platform": {
+                                                    "description": "Device platform",
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "is_token_active": {
+                                                    "description": "Token activation status",
+                                                    "type": "boolean"
+                                                },
+                                                "token_registered_at": {
+                                                    "description": "Registration timestamp",
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Register device push token",
+                "description": "Register or update the push notification device token for the authenticated user with platform information and activation status.",
+                "operationId": "cc468f2998675ad4dde94f8bf3a9ade1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "push_token",
+                                    "platform"
+                                ],
+                                "properties": {
+                                    "push_token": {
+                                        "description": "Push notification device token",
+                                        "type": "string",
+                                        "example": "a1b2c3d4e5f6..."
+                                    },
+                                    "platform": {
+                                        "description": "Device platform",
+                                        "type": "string",
+                                        "enum": [
+                                            "ios",
+                                            "android",
+                                            "web"
+                                        ],
+                                        "example": "ios"
+                                    },
+                                    "is_token_active": {
+                                        "description": "Whether the token should be active",
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Device token registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Push token registered successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "push_token": {
+                                                    "description": "Registered push token",
+                                                    "type": "string"
+                                                },
+                                                "platform": {
+                                                    "description": "Device platform",
+                                                    "type": "string"
+                                                },
+                                                "is_token_active": {
+                                                    "description": "Token activation status",
+                                                    "type": "boolean"
+                                                },
+                                                "token_registered_at": {
+                                                    "description": "Registration timestamp",
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Deactivate push token",
+                "description": "Deactivate the current push notification token for the authenticated user without removing it.",
+                "operationId": "3640b28e5d244654f20f07cc5bcb9937",
+                "responses": {
+                    "200": {
+                        "description": "Push token deactivated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Push token deactivated successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/push-preferences": {
+            "put": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Update push notification preferences",
+                "description": "Update global push notification preferences for the authenticated user.",
+                "operationId": "8dfdedcab7845dbfe8e460aa563ace1d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "enabled": {
+                                        "description": "Enable/disable all push notifications",
+                                        "type": "boolean"
+                                    },
+                                    "quiet_hours_start": {
+                                        "description": "Start of quiet hours (24h format)",
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "22:00"
+                                    },
+                                    "quiet_hours_end": {
+                                        "description": "End of quiet hours (24h format)",
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "08:00"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Push notification preferences updated"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/delivered-facts": {
+            "get": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get delivered facts history",
+                "description": "Get paginated history of facts delivered to the authenticated user with package information and delivery metadata.",
+                "operationId": "750f90cc0bfda3eecff4e7826298f838",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "example": 20
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by delivery status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "scheduled",
+                                "delivering",
+                                "delivered",
+                                "failed",
+                                "failed_permanently"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivered facts history",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/DeliveredFact"
+                                                    }
+                                                },
+                                                "first_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "from": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "next_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "path": {
+                                                    "type": "string"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "prev_page_url": {
+                                                    "type": "string"
+                                                },
+                                                "to": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/delivered-facts/{id}/seen": {
+            "patch": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Mark delivered fact as seen",
+                "description": "Mark a delivered fact as seen by the user.",
+                "operationId": "1a28ca905e521642d335a1c711bd6b20",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Delivered fact ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fact marked as seen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Fact marked as seen"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Delivered fact not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/notification-preferences": {
+            "get": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get current notification preferences",
+                "description": "Get all push notification preferences for the authenticated user including timezone and quiet hours settings.",
+                "operationId": "32225032c18d883f4c5a5e6d61397ffe",
+                "responses": {
+                    "200": {
+                        "description": "Current notification preferences",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PushNotificationPreferences"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Update comprehensive notification preferences",
+                "description": "Update all push notification preferences including timezone, quiet hours, and global settings. Settings are validated based on user type capabilities.",
+                "operationId": "14d6baff5d3412ec7da35aa2b4b614b5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PushNotificationPreferences"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Notification preferences updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PushNotificationPreferences"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error - invalid timezone or quiet hours format",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/delivery-status": {
+            "get": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get delivery status and statistics",
+                "description": "Get comprehensive delivery status including today's quota usage, next scheduled deliveries, and delivery statistics.",
+                "operationId": "2692635060f7f1410a955a41a6493c57",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Date to check status for (YYYY-MM-DD format, defaults to today)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-01-15"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delivery status and statistics",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "today_facts_delivered": {
+                                                    "description": "Facts delivered today",
+                                                    "type": "integer"
+                                                },
+                                                "daily_quota_used": {
+                                                    "description": "Total daily quota used",
+                                                    "type": "integer"
+                                                },
+                                                "daily_quota_limit": {
+                                                    "description": "Daily quota limit for user type",
+                                                    "type": "integer"
+                                                },
+                                                "can_schedule_more": {
+                                                    "description": "Whether more facts can be scheduled today",
+                                                    "type": "boolean"
+                                                },
+                                                "next_delivery_at": {
+                                                    "description": "Next scheduled delivery time",
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "subscribed_packages": {
+                                                    "description": "Number of subscribed packages",
+                                                    "type": "integer"
+                                                },
+                                                "packages_with_delivery": {
+                                                    "description": "Packages with delivery enabled",
+                                                    "type": "integer"
+                                                },
+                                                "user_type": {
+                                                    "description": "Current user type",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "guest",
+                                                        "logged_in",
+                                                        "premium"
+                                                    ]
+                                                },
+                                                "package_quotas": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "package_id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "package_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "delivered_today": {
+                                                                "type": "integer"
+                                                            },
+                                                            "quota_limit": {
+                                                                "type": "integer"
+                                                            },
+                                                            "next_delivery_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "firebaseAuth": []
+                    }
+                ]
+            }
+        },
         "/api/user/packages": {
             "get": {
                 "tags": [
@@ -1237,6 +1888,344 @@
                 },
                 "type": "object"
             },
+            "PushTokenInfo": {
+                "properties": {
+                    "push_token": {
+                        "description": "Push notification device token",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "platform": {
+                        "description": "Device platform",
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android",
+                            "web"
+                        ],
+                        "nullable": true
+                    },
+                    "is_token_active": {
+                        "description": "Whether the token is active",
+                        "type": "boolean"
+                    },
+                    "token_registered_at": {
+                        "description": "When the token was registered",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PushTokenRegistration": {
+                "required": [
+                    "push_token",
+                    "platform"
+                ],
+                "properties": {
+                    "push_token": {
+                        "description": "Push notification device token",
+                        "type": "string",
+                        "example": "a1b2c3d4e5f6..."
+                    },
+                    "platform": {
+                        "description": "Device platform",
+                        "type": "string",
+                        "enum": [
+                            "ios",
+                            "android",
+                            "web"
+                        ],
+                        "example": "ios"
+                    },
+                    "is_token_active": {
+                        "description": "Whether the token should be active",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "type": "object"
+            },
+            "DeliveredFact": {
+                "properties": {
+                    "id": {
+                        "description": "Delivery UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "user_id": {
+                        "description": "User UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "package_id": {
+                        "description": "Package UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "fact_id": {
+                        "description": "Fact UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "scheduled_at": {
+                        "description": "When delivery was scheduled",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "delivered_at": {
+                        "description": "When fact was delivered",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "seen_at": {
+                        "description": "When user marked as seen",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "status": {
+                        "description": "Delivery status",
+                        "type": "string",
+                        "enum": [
+                            "scheduled",
+                            "delivering",
+                            "delivered",
+                            "failed",
+                            "failed_permanently"
+                        ]
+                    },
+                    "channel": {
+                        "description": "Delivery channel",
+                        "type": "string",
+                        "enum": [
+                            "push",
+                            "email",
+                            "sms"
+                        ]
+                    },
+                    "attempts": {
+                        "description": "Number of delivery attempts",
+                        "type": "integer"
+                    },
+                    "meta": {
+                        "description": "Additional delivery metadata",
+                        "type": "object"
+                    },
+                    "fact": {
+                        "$ref": "#/components/schemas/Fact"
+                    },
+                    "package": {
+                        "$ref": "#/components/schemas/Package"
+                    }
+                },
+                "type": "object"
+            },
+            "PushNotificationPreferences": {
+                "properties": {
+                    "push_notifications_enabled": {
+                        "description": "Enable push notifications",
+                        "type": "boolean"
+                    },
+                    "timezone": {
+                        "description": "User timezone (IANA format)",
+                        "type": "string"
+                    },
+                    "quiet_hours_enabled": {
+                        "description": "Enable quiet hours",
+                        "type": "boolean"
+                    },
+                    "quiet_hours_start": {
+                        "description": "Quiet hours start time",
+                        "type": "string",
+                        "format": "time"
+                    },
+                    "quiet_hours_end": {
+                        "description": "Quiet hours end time",
+                        "type": "string",
+                        "format": "time"
+                    }
+                },
+                "type": "object"
+            },
+            "DeliverySettings": {
+                "properties": {
+                    "delivery_enabled": {
+                        "description": "Whether delivery is enabled for this package",
+                        "type": "boolean"
+                    },
+                    "delivery_mode": {
+                        "description": "Delivery mode",
+                        "type": "string",
+                        "enum": [
+                            "daily",
+                            "weekly",
+                            "times_per_day",
+                            "windowed"
+                        ]
+                    },
+                    "preferred_times": {
+                        "description": "Preferred delivery times in HH:MM format",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "time"
+                        }
+                    },
+                    "days_of_week": {
+                        "description": "Days of week (0=Sunday, 6=Saturday)",
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "maximum": 6,
+                            "minimum": 0
+                        }
+                    },
+                    "delivery_window_start": {
+                        "description": "Window start time (premium only)",
+                        "type": "string",
+                        "format": "time"
+                    },
+                    "delivery_window_end": {
+                        "description": "Window end time (premium only)",
+                        "type": "string",
+                        "format": "time"
+                    },
+                    "per_day_quota": {
+                        "description": "Maximum facts per day from this package",
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "min_interval_minutes": {
+                        "description": "Minimum minutes between notifications",
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "time_sensitive": {
+                        "description": "Enable time-sensitive notifications (premium only)",
+                        "type": "boolean"
+                    },
+                    "next_delivery_at": {
+                        "description": "Next scheduled delivery time",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "NotificationRules": {
+                "properties": {
+                    "user_type": {
+                        "description": "User account type",
+                        "type": "string",
+                        "enum": [
+                            "guest",
+                            "logged_in",
+                            "premium"
+                        ]
+                    },
+                    "max_daily_facts": {
+                        "description": "Maximum facts per day",
+                        "type": "integer"
+                    },
+                    "min_interval_minutes": {
+                        "description": "Minimum minutes between notifications",
+                        "type": "integer"
+                    },
+                    "max_times_per_day": {
+                        "description": "Maximum delivery times per day",
+                        "type": "integer"
+                    },
+                    "max_per_package_daily": {
+                        "description": "Maximum facts per package per day",
+                        "type": "integer"
+                    },
+                    "allowed_delivery_modes": {
+                        "description": "Allowed delivery modes",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "can_disable_quiet_hours": {
+                        "description": "Can disable quiet hours",
+                        "type": "boolean"
+                    },
+                    "supports_delivery_window": {
+                        "description": "Supports delivery windows",
+                        "type": "boolean"
+                    },
+                    "supports_time_sensitive": {
+                        "description": "Supports time-sensitive notifications",
+                        "type": "boolean"
+                    },
+                    "default_quiet_hours": {
+                        "properties": {
+                            "start": {
+                                "type": "string",
+                                "format": "time"
+                            },
+                            "end": {
+                                "type": "string",
+                                "format": "time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "UserPackageSubscription": {
+                "properties": {
+                    "package_id": {
+                        "description": "Package UUID",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "package_name": {
+                        "description": "Package name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Package description",
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "description": "Package icon URL",
+                        "type": "string"
+                    },
+                    "access_level": {
+                        "description": "Required access level",
+                        "type": "string",
+                        "enum": [
+                            "free",
+                            "loggedIn",
+                            "premium"
+                        ]
+                    },
+                    "subscribed_at": {
+                        "description": "Subscription date",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "category": {
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "delivery_settings": {
+                        "$ref": "#/components/schemas/DeliverySettings"
+                    }
+                },
+                "type": "object"
+            },
             "User": {
                 "required": [
                     "id",
@@ -1333,6 +2322,10 @@
         {
             "name": "Categories",
             "description": "Package category browsing and filtering"
+        },
+        {
+            "name": "Push Notifications",
+            "description": "Push Notifications"
         }
     ]
 }
