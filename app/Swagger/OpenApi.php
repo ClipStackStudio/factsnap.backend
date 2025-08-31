@@ -22,7 +22,12 @@ use OpenApi\Annotations as OA;
  * 
  * @OA\Tag(
  *   name="User Packages",
- *   description="Package subscription management for Firebase authenticated users (both regular and guest users)."
+ *   description="Package subscription management with delivery settings for Firebase authenticated users (both regular and guest users)."
+ * )
+ * 
+ * @OA\Tag(
+ *   name="Push Notifications",
+ *   description="Push notification management, delivery preferences, and fact delivery tracking with user type-based rules and intelligent scheduling."
  * )
  * 
  * @OA\Tag(
